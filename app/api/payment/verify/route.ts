@@ -4,10 +4,18 @@ import connectDB from '@/lib/mongodb';
 import Order from '@/models/Order';
 import { notifyShopClients } from '@/app/api/orders/[shopId]/events/route';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+function getStripeClient() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error('Missing STRIPE_SECRET_KEY environment variable');
+  }
+
+  return new Stripe(secretKey);
+}
 
 export async function POST(request: Request) {
   try {
+    const stripe = getStripeClient();
     const { sessionId, orderId } = await request.json();
 
     // Retrieve the session from Stripe to verify payment
